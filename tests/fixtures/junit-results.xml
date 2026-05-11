@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites name="Test Suite" tests="4" failures="1" errors="0" skipped="1" time="1.234">
+  <testsuite name="ExampleTests" tests="4" failures="1" errors="0" skipped="1" time="1.234">
+    <testcase name="test_passing_one" classname="ExampleTests" time="0.100"/>
+    <testcase name="test_passing_two" classname="ExampleTests" time="0.200"/>
+    <testcase name="test_failing_one" classname="ExampleTests" time="0.300">
+      <failure message="AssertionError: expected true but got false">AssertionError: expected true but got false</failure>
+    </testcase>
+    <testcase name="test_skipped_one" classname="ExampleTests" time="0.000">
+      <skipped/>
+    </testcase>
+  </testsuite>
+</testsuites>
