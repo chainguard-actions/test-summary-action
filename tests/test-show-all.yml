@@ -1,0 +1,41 @@
+name: Test show input with all results
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - id: action
+        uses: .
+        with:
+          paths: "${{ github.workspace }}/actions/hardened/test-summary--action/v2.1/tests/fixtures/TEST-results.xml"
+          show: "all"
+          output: "${{ github.workspace }}/test-summary-show-all.md"
+      - name: Assert action completed and produced outputs
+        env:
+          PASSED: ${{ steps.action.outputs.passed }}
+          FAILED: ${{ steps.action.outputs.failed }}
+          SKIPPED: ${{ steps.action.outputs.skipped }}
+          TOTAL: ${{ steps.action.outputs.total }}
+        run: |
+          echo "passed: $PASSED"
+          echo "failed: $FAILED"
+          echo "skipped: $SKIPPED"
+          echo "total: $TOTAL"
+          if [ -z "$TOTAL" ]; then
+            echo "FAIL: expected 'total' output to be non-empty"
+            exit 1
+          fi
+          echo "PASS: action produced outputs with show=all"
+      - name: Assert output file was created with show=all
+        run: |
+          OUTPUT_FILE="${GITHUB_WORKSPACE}/test-summary-show-all.md"
+          echo "Checking for output file: $OUTPUT_FILE"
+          if [ ! -f "$OUTPUT_FILE" ]; then
+            echo "FAIL: output file was not created"
+            exit 1
+          fi
+          echo "Output file contents:"
+          cat "$OUTPUT_FILE"
+          echo "PASS: output file exists with show=all"
