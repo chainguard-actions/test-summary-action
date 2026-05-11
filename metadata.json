@@ -1,0 +1,8 @@
+{
+  "owner": "test-summary",
+  "name": "action",
+  "alias": "test-summary-action",
+  "visibility": "internal",
+  "description": "Display test results summary in a GitHub Actions workflow",
+  "block_publish": false
+}
