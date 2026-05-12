@@ -1,0 +1,24 @@
+name: Test show filter input
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - id: action
+        uses: .
+        with:
+          paths: actions/hardened/test-summary--action/v2.6/tests/fixtures/results-with-failure.xml
+          show: fail
+          output: /tmp/test-summary-show.md
+      - name: Assert action completed and output file was created
+        run: |
+          echo "Checking output file exists..."
+          if [ ! -f /tmp/test-summary-show.md ]; then
+            echo "FAIL: output file /tmp/test-summary-show.md was not created"
+            exit 1
+          fi
+          echo "Output file contents:"
+          cat /tmp/test-summary-show.md
+          echo "PASS: action completed with show=fail filter"
