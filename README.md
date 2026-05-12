@@ -10,6 +10,7 @@ Hardened by [Chainguard](https://www.chainguard.dev) from the upstream action at
 |---------|-----|-----------------|
 | v2.0 | [`v2.0`](https://github.com/chainguard-actions/test-summary-action/tree/v2.0) | — |
 | v2.1 | [`v2.1`](https://github.com/chainguard-actions/test-summary-action/tree/v2.1) | — |
+| v2.6 | [`v2.6`](https://github.com/chainguard-actions/test-summary-action/tree/v2.6) | — |
 
 ## Privacy
 
