@@ -1,0 +1,42 @@
+name: Test basic usage with paths input
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - id: action
+        uses: .
+        with:
+          paths: actions/hardened/test-summary--action/v2.4/tests/fixtures/results/TEST-example.xml
+      - name: Assert passed output
+        env:
+          PASSED: ${{ steps.action.outputs.passed }}
+        run: |
+          echo "passed: $PASSED"
+          if [ -z "$PASSED" ]; then
+            echo "FAIL: expected 'passed' output to be non-empty"
+            exit 1
+          fi
+          echo "PASS"
+      - name: Assert failed output
+        env:
+          FAILED: ${{ steps.action.outputs.failed }}
+        run: |
+          echo "failed: $FAILED"
+          if [ -z "$FAILED" ]; then
+            echo "FAIL: expected 'failed' output to be non-empty"
+            exit 1
+          fi
+          echo "PASS"
+      - name: Assert total output
+        env:
+          TOTAL: ${{ steps.action.outputs.total }}
+        run: |
+          echo "total: $TOTAL"
+          if [ "$TOTAL" != "4" ]; then
+            echo "FAIL: expected total to be 4, got '$TOTAL'"
+            exit 1
+          fi
+          echo "PASS"
