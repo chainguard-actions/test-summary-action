@@ -1,4 +1,4 @@
-name: Test output file generation
+name: Test output to file
 on:
   workflow_dispatch:
 jobs:
@@ -6,27 +6,63 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Create JUnit XML test file
+        run: |
+          mkdir -p tests/results
+          cat > tests/results/TEST-output.xml << 'EOF'
+          <?xml version="1.0" encoding="UTF-8"?>
+          <testsuite name="OutputSuite" tests="2" failures="1" errors="0" skipped="0" time="0.500">
+            <testcase name="test_pass" classname="com.example.OutputTest" time="0.100"/>
+            <testcase name="test_fail" classname="com.example.OutputTest" time="0.200">
+              <failure message="Expected 1 but got 2">Expected 1 but got 2</failure>
+            </testcase>
+          </testsuite>
+          EOF
+
       - id: action
         uses: .
         with:
-          paths: actions/hardened/test-summary--action/v2.4/tests/fixtures/results/TEST-example.xml
-          output: /tmp/test-summary-output.md
+          paths: tests/results/TEST-output.xml
+          output: tests/results/summary.md
+
       - name: Assert output file was created
         run: |
-          echo "Checking if output file exists..."
-          if [ ! -f /tmp/test-summary-output.md ]; then
-            echo "FAIL: output file /tmp/test-summary-output.md was not created"
+          if [ ! -f "tests/results/summary.md" ]; then
+            echo "FAIL: output file tests/results/summary.md was not created"
             exit 1
           fi
-          echo "Output file contents:"
-          cat /tmp/test-summary-output.md
           echo "PASS: output file exists"
+
       - name: Assert output file is non-empty
         run: |
-          SIZE=$(wc -c < /tmp/test-summary-output.md)
+          SIZE=$(wc -c < tests/results/summary.md)
           echo "output file size: $SIZE bytes"
           if [ "$SIZE" -eq 0 ]; then
             echo "FAIL: output file is empty"
+            exit 1
+          fi
+          echo "PASS: output file has content"
+
+      - name: Assert output file contains markdown
+        run: |
+          CONTENT=$(cat tests/results/summary.md)
+          echo "output file content:"
+          echo "$CONTENT"
+          # The file should contain some markdown content (headers, tables, etc.)
+          if ! echo "$CONTENT" | grep -qiE '(test|pass|fail|#|\|)'; then
+            echo "FAIL: output file does not appear to contain test summary markdown"
+            exit 1
+          fi
+          echo "PASS: output file contains expected content"
+
+      - name: Assert total output
+        env:
+          TOTAL: ${{ steps.action.outputs.total }}
+        run: |
+          echo "total: $TOTAL"
+          if [ "$TOTAL" != "2" ]; then
+            echo "FAIL: expected total=2, got '$TOTAL'"
             exit 1
           fi
           echo "PASS"

@@ -1,4 +1,4 @@
-name: Test show input with all results
+name: Test show=all option with glob paths
 on:
   workflow_dispatch:
 jobs:
@@ -6,59 +6,85 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Create multiple JUnit XML test files
+        run: |
+          mkdir -p tests/results/suite-a tests/results/suite-b
+          cat > tests/results/suite-a/TEST-a.xml << 'EOF'
+          <?xml version="1.0" encoding="UTF-8"?>
+          <testsuite name="SuiteA" tests="2" failures="0" errors="0" skipped="1" time="0.300">
+            <testcase name="test_a1" classname="com.example.SuiteA" time="0.100"/>
+            <testcase name="test_a2" classname="com.example.SuiteA" time="0.000">
+              <skipped/>
+            </testcase>
+          </testsuite>
+          EOF
+          cat > tests/results/suite-b/TEST-b.xml << 'EOF'
+          <?xml version="1.0" encoding="UTF-8"?>
+          <testsuite name="SuiteB" tests="3" failures="1" errors="0" skipped="0" time="0.600">
+            <testcase name="test_b1" classname="com.example.SuiteB" time="0.100"/>
+            <testcase name="test_b2" classname="com.example.SuiteB" time="0.200"/>
+            <testcase name="test_b3" classname="com.example.SuiteB" time="0.300">
+              <failure message="Assertion failed">Assertion failed</failure>
+            </testcase>
+          </testsuite>
+          EOF
+
       - id: action
         uses: .
         with:
-          paths: actions/hardened/test-summary--action/v2.4/tests/fixtures/results/TEST-example.xml
+          paths: "tests/results/**/TEST-*.xml"
           show: "all"
-          output: /tmp/test-summary-show-all.md
-      - name: Assert output file was created
-        run: |
-          echo "Checking if output file exists..."
-          if [ ! -f /tmp/test-summary-show-all.md ]; then
-            echo "FAIL: output file /tmp/test-summary-show-all.md was not created"
-            exit 1
-          fi
-          echo "Output file contents:"
-          cat /tmp/test-summary-show-all.md
-          echo "PASS: output file exists"
-      - name: Assert total count is correct
-        env:
-          TOTAL: ${{ steps.action.outputs.total }}
-        run: |
-          echo "total: $TOTAL"
-          if [ "$TOTAL" != "4" ]; then
-            echo "FAIL: expected total to be 4, got '$TOTAL'"
-            exit 1
-          fi
-          echo "PASS"
-      - name: Assert passed count is correct
+          output: tests/results/summary-all.md
+
+      - name: Assert passed count (combined suites)
         env:
           PASSED: ${{ steps.action.outputs.passed }}
         run: |
           echo "passed: $PASSED"
-          if [ "$PASSED" != "2" ]; then
-            echo "FAIL: expected passed to be 2, got '$PASSED'"
+          if [ "$PASSED" != "3" ]; then
+            echo "FAIL: expected passed=3, got '$PASSED'"
             exit 1
           fi
           echo "PASS"
-      - name: Assert failed count is correct
+
+      - name: Assert failed count (combined suites)
         env:
           FAILED: ${{ steps.action.outputs.failed }}
         run: |
           echo "failed: $FAILED"
           if [ "$FAILED" != "1" ]; then
-            echo "FAIL: expected failed to be 1, got '$FAILED'"
+            echo "FAIL: expected failed=1, got '$FAILED'"
             exit 1
           fi
           echo "PASS"
-      - name: Assert skipped count is correct
+
+      - name: Assert skipped count (combined suites)
         env:
           SKIPPED: ${{ steps.action.outputs.skipped }}
         run: |
           echo "skipped: $SKIPPED"
           if [ "$SKIPPED" != "1" ]; then
-            echo "FAIL: expected skipped to be 1, got '$SKIPPED'"
+            echo "FAIL: expected skipped=1, got '$SKIPPED'"
             exit 1
           fi
           echo "PASS"
+
+      - name: Assert total count (combined suites)
+        env:
+          TOTAL: ${{ steps.action.outputs.total }}
+        run: |
+          echo "total: $TOTAL"
+          if [ "$TOTAL" != "5" ]; then
+            echo "FAIL: expected total=5, got '$TOTAL'"
+            exit 1
+          fi
+          echo "PASS"
+
+      - name: Assert output file was created
+        run: |
+          if [ ! -f "tests/results/summary-all.md" ]; then
+            echo "FAIL: output file was not created"
+            exit 1
+          fi
+          echo "PASS: output file exists"

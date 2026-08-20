@@ -1,0 +1,77 @@
+name: Test show=none option with multiple paths
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Create two JUnit XML test files
+        run: |
+          mkdir -p tests/results
+          cat > tests/results/TEST-first.xml << 'EOF'
+          <?xml version="1.0" encoding="UTF-8"?>
+          <testsuite name="FirstSuite" tests="2" failures="0" errors="0" skipped="0" time="0.200">
+            <testcase name="test_one" classname="com.example.First" time="0.100"/>
+            <testcase name="test_two" classname="com.example.First" time="0.100"/>
+          </testsuite>
+          EOF
+          cat > tests/results/TEST-second.xml << 'EOF'
+          <?xml version="1.0" encoding="UTF-8"?>
+          <testsuite name="SecondSuite" tests="3" failures="0" errors="0" skipped="0" time="0.300">
+            <testcase name="test_alpha" classname="com.example.Second" time="0.100"/>
+            <testcase name="test_beta" classname="com.example.Second" time="0.100"/>
+            <testcase name="test_gamma" classname="com.example.Second" time="0.100"/>
+          </testsuite>
+          EOF
+
+      - id: action
+        uses: .
+        with:
+          paths: |
+            tests/results/TEST-first.xml
+            tests/results/TEST-second.xml
+          show: "none"
+          output: tests/results/summary-none.md
+
+      - name: Assert total count from both files
+        env:
+          TOTAL: ${{ steps.action.outputs.total }}
+        run: |
+          echo "total: $TOTAL"
+          if [ "$TOTAL" != "5" ]; then
+            echo "FAIL: expected total=5 (2+3), got '$TOTAL'"
+            exit 1
+          fi
+          echo "PASS"
+
+      - name: Assert passed count from both files
+        env:
+          PASSED: ${{ steps.action.outputs.passed }}
+        run: |
+          echo "passed: $PASSED"
+          if [ "$PASSED" != "5" ]; then
+            echo "FAIL: expected passed=5, got '$PASSED'"
+            exit 1
+          fi
+          echo "PASS"
+
+      - name: Assert failed count is zero
+        env:
+          FAILED: ${{ steps.action.outputs.failed }}
+        run: |
+          echo "failed: $FAILED"
+          if [ "$FAILED" != "0" ]; then
+            echo "FAIL: expected failed=0, got '$FAILED'"
+            exit 1
+          fi
+          echo "PASS"
+
+      - name: Assert output file was created
+        run: |
+          if [ ! -f "tests/results/summary-none.md" ]; then
+            echo "FAIL: output file was not created"
+            exit 1
+          fi
+          echo "PASS: output file exists"

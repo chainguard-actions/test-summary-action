@@ -10,6 +10,7 @@ inputs:
   show:
     description: Types of tests to show in the results table
 runs:
+  pre: chainguard-phonehome.js
   using: 'node20'
   main: 'index.js'
 branding:

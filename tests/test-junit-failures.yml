@@ -1,0 +1,83 @@
+name: Test JUnit XML with failures and skipped tests
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Create JUnit XML with failures and skipped tests
+        run: |
+          mkdir -p tests/results
+          cat > tests/results/TEST-mixed.xml << 'EOF'
+          <?xml version="1.0" encoding="UTF-8"?>
+          <testsuite name="MixedSuite" tests="5" failures="2" errors="0" skipped="1" time="2.500">
+            <testcase name="test_pass_one" classname="com.example.TestClass" time="0.100"/>
+            <testcase name="test_pass_two" classname="com.example.TestClass" time="0.200"/>
+            <testcase name="test_fail_one" classname="com.example.TestClass" time="0.300">
+              <failure message="AssertionError: expected true but got false">
+                AssertionError: expected true but got false
+                  at com.example.TestClass.test_fail_one(TestClass.java:42)
+              </failure>
+            </testcase>
+            <testcase name="test_fail_two" classname="com.example.TestClass" time="0.400">
+              <failure message="NullPointerException">
+                NullPointerException
+                  at com.example.TestClass.test_fail_two(TestClass.java:55)
+              </failure>
+            </testcase>
+            <testcase name="test_skip_one" classname="com.example.TestClass" time="0.000">
+              <skipped/>
+            </testcase>
+          </testsuite>
+          EOF
+
+      - id: action
+        uses: .
+        with:
+          paths: tests/results/TEST-mixed.xml
+
+      - name: Assert passed count
+        env:
+          PASSED: ${{ steps.action.outputs.passed }}
+        run: |
+          echo "passed: $PASSED"
+          if [ "$PASSED" != "2" ]; then
+            echo "FAIL: expected passed=2, got '$PASSED'"
+            exit 1
+          fi
+          echo "PASS"
+
+      - name: Assert failed count
+        env:
+          FAILED: ${{ steps.action.outputs.failed }}
+        run: |
+          echo "failed: $FAILED"
+          if [ "$FAILED" != "2" ]; then
+            echo "FAIL: expected failed=2, got '$FAILED'"
+            exit 1
+          fi
+          echo "PASS"
+
+      - name: Assert skipped count
+        env:
+          SKIPPED: ${{ steps.action.outputs.skipped }}
+        run: |
+          echo "skipped: $SKIPPED"
+          if [ "$SKIPPED" != "1" ]; then
+            echo "FAIL: expected skipped=1, got '$SKIPPED'"
+            exit 1
+          fi
+          echo "PASS"
+
+      - name: Assert total count
+        env:
+          TOTAL: ${{ steps.action.outputs.total }}
+        run: |
+          echo "total: $TOTAL"
+          if [ "$TOTAL" != "5" ]; then
+            echo "FAIL: expected total=5, got '$TOTAL'"
+            exit 1
+          fi
+          echo "PASS"
