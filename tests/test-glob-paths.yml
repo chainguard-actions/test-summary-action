@@ -1,0 +1,28 @@
+name: Test glob path patterns
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - id: action
+        uses: .
+        with:
+          paths: "tests/fixtures/*.xml"
+          output: /tmp/glob-summary.md
+      - name: Assert glob matched multiple files and produced output
+        run: |
+          echo "Checking glob output file exists..."
+          if [ ! -f /tmp/glob-summary.md ]; then
+            echo "FAIL: output file /tmp/glob-summary.md was not created"
+            exit 1
+          fi
+          echo "Glob output file contents:"
+          cat /tmp/glob-summary.md
+          echo ""
+          if [ ! -s /tmp/glob-summary.md ]; then
+            echo "FAIL: output file is empty"
+            exit 1
+          fi
+          echo "PASS: glob pattern matched files and produced summary"

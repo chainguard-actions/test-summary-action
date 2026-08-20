@@ -1,4 +1,4 @@
-name: Test output file input
+name: Test output file generation
 on:
   workflow_dispatch:
 jobs:
@@ -9,15 +9,21 @@ jobs:
       - id: action
         uses: .
         with:
-          paths: "${{ github.workspace }}/actions/hardened/test-summary--action/v2.0/tests/fixtures/junit-results.xml"
-          output: "/tmp/test-summary-output.md"
+          paths: tests/fixtures/junit-mixed.xml
+          output: /tmp/test-summary.md
       - name: Assert output file was created
         run: |
-          echo "Checking that output file was created at /tmp/test-summary-output.md"
-          if [ ! -f "/tmp/test-summary-output.md" ]; then
-            echo "FAIL: output file was not created"
+          echo "Checking output file exists..."
+          if [ ! -f /tmp/test-summary.md ]; then
+            echo "FAIL: output file /tmp/test-summary.md was not created"
             exit 1
           fi
           echo "Output file contents:"
-          cat /tmp/test-summary-output.md
-          echo "PASS: output file exists"
+          cat /tmp/test-summary.md
+          echo ""
+          # Verify the file has some content (markdown summary)
+          if [ ! -s /tmp/test-summary.md ]; then
+            echo "FAIL: output file is empty"
+            exit 1
+          fi
+          echo "PASS: output file was created with content"
