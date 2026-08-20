@@ -9,7 +9,7 @@ Hardened by [Chainguard](https://www.chainguard.dev) from the upstream action at
 | Version | Tag | Upstream commit |
 |---------|-----|-----------------|
 | v2.0 | [`v2.0`](https://github.com/chainguard-actions/test-summary-action/tree/v2.0) | — |
-| v2.1 | [`v2.1`](https://github.com/chainguard-actions/test-summary-action/tree/v2.1) | — |
+| v2.1 | [`v2.1`](https://github.com/chainguard-actions/test-summary-action/tree/v2.1) | [`62bc5c6`](https://github.com/test-summary/action/commit/62bc5c68de2a6a0d02039763b8c754569df99e3f) |
 | v2.4 | [`v2.4`](https://github.com/chainguard-actions/test-summary-action/tree/v2.4) | — |
 | v2.6 | [`v2.6`](https://github.com/chainguard-actions/test-summary-action/tree/v2.6) | — |
 
