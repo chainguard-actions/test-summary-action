@@ -1,0 +1,10 @@
+TAP version 13
+1..4
+ok 1 - test_alpha
+ok 2 - test_beta
+not ok 3 - test_gamma
+  ---
+  message: 'Expected value to be truthy'
+  severity: fail
+  ...
+ok 4 - test_delta # SKIP not implemented yet

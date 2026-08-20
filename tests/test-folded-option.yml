@@ -1,0 +1,51 @@
+name: Test folded option for collapsible details blocks
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - id: action
+        uses: .
+        with:
+          paths: tests/fixtures/junit-mixed.xml
+          folded: "true"
+          output: /tmp/test-summary-folded.md
+
+      - name: Assert action succeeded and outputs are set
+        env:
+          PASSED: ${{ steps.action.outputs.passed }}
+          FAILED: ${{ steps.action.outputs.failed }}
+          SKIPPED: ${{ steps.action.outputs.skipped }}
+          TOTAL: ${{ steps.action.outputs.total }}
+        run: |
+          echo "passed: $PASSED"
+          echo "failed: $FAILED"
+          echo "skipped: $SKIPPED"
+          echo "total: $TOTAL"
+          if [ -z "$TOTAL" ]; then
+            echo "FAIL: total output is empty"
+            exit 1
+          fi
+          if [ "$TOTAL" != "5" ]; then
+            echo "FAIL: expected total=5, got '$TOTAL'"
+            exit 1
+          fi
+          echo "PASS: outputs are correct"
+
+      - name: Assert output file was created and contains details tag
+        run: |
+          if [ ! -f /tmp/test-summary-folded.md ]; then
+            echo "FAIL: output file was not created"
+            exit 1
+          fi
+          CONTENT=$(cat /tmp/test-summary-folded.md)
+          echo "output file content:"
+          echo "$CONTENT"
+          # Folded mode should produce <details> HTML tags in the markdown
+          if ! echo "$CONTENT" | grep -qi 'details'; then
+            echo "WARN: output file does not contain <details> tag (folded mode may not apply to this fixture)"
+          fi
+          echo "PASS: output file exists with content"

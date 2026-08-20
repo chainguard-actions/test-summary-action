@@ -1,0 +1,37 @@
+name: Test glob pattern for paths input
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - id: action
+        uses: .
+        with:
+          paths: tests/fixtures/junit-*.xml
+
+      - name: Assert total count reflects both XML files
+        env:
+          TOTAL: ${{ steps.action.outputs.total }}
+          PASSED: ${{ steps.action.outputs.passed }}
+          FAILED: ${{ steps.action.outputs.failed }}
+        run: |
+          echo "total: $TOTAL"
+          echo "passed: $PASSED"
+          echo "failed: $FAILED"
+          # junit-passing.xml has 3 tests, junit-mixed.xml has 5 tests = 8 total
+          if [ "$TOTAL" != "8" ]; then
+            echo "FAIL: expected total=8 (3+5 from two XML files), got '$TOTAL'"
+            exit 1
+          fi
+          if [ "$PASSED" != "6" ]; then
+            echo "FAIL: expected passed=6 (3+3 from two XML files), got '$PASSED'"
+            exit 1
+          fi
+          if [ "$FAILED" != "1" ]; then
+            echo "FAIL: expected failed=1, got '$FAILED'"
+            exit 1
+          fi
+          echo "PASS: glob matched both XML files correctly"
