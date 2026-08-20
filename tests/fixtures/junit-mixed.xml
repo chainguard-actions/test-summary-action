@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites name="Mixed Test Suite" tests="5" failures="1" errors="0" skipped="1" time="2.345">
+  <testsuite name="com.example.MixedTest" tests="5" failures="1" errors="0" skipped="1" time="1.0">
+    <testcase name="testPass1" classname="com.example.MixedTest" time="0.1"/>
+    <testcase name="testPass2" classname="com.example.MixedTest" time="0.1"/>
+    <testcase name="testPass3" classname="com.example.MixedTest" time="0.1"/>
+    <testcase name="testFail" classname="com.example.MixedTest" time="0.5">
+      <failure message="Expected true but was false" type="AssertionError">
+        com.example.MixedTest.testFail(MixedTest.java:42)
+        Expected: true
+        Actual: false
+      </failure>
+    </testcase>
+    <testcase name="testSkipped" classname="com.example.MixedTest" time="0.0">
+      <skipped message="Test skipped intentionally"/>
+    </testcase>
+  </testsuite>
+</testsuites>

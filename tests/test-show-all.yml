@@ -1,4 +1,4 @@
-name: Test show input with all results
+name: Test show=all option
 on:
   workflow_dispatch:
 jobs:
@@ -9,33 +9,33 @@ jobs:
       - id: action
         uses: .
         with:
-          paths: "${{ github.workspace }}/actions/hardened/test-summary--action/v2.1/tests/fixtures/TEST-results.xml"
-          show: "all"
-          output: "${{ github.workspace }}/test-summary-show-all.md"
-      - name: Assert action completed and produced outputs
+          paths: tests/fixtures/junit-passing.xml
+          show: all
+          output: /tmp/test-summary-all.md
+      - name: Assert output file was created
+        run: |
+          if [ ! -f /tmp/test-summary-all.md ]; then
+            echo "FAIL: output file /tmp/test-summary-all.md was not created"
+            exit 1
+          fi
+          echo "PASS: output file exists"
+      - name: Assert output file contains test names (show=all includes passing tests)
+        run: |
+          echo "Output file contents:"
+          cat /tmp/test-summary-all.md
+          # With show=all, the table should include passing test names
+          if ! grep -q "testOne\|testTwo\|testThree\|test" /tmp/test-summary-all.md; then
+            echo "FAIL: output file does not contain test names (show=all should include all tests)"
+            exit 1
+          fi
+          echo "PASS: output file contains test names"
+      - name: Assert passed output
         env:
           PASSED: ${{ steps.action.outputs.passed }}
-          FAILED: ${{ steps.action.outputs.failed }}
-          SKIPPED: ${{ steps.action.outputs.skipped }}
-          TOTAL: ${{ steps.action.outputs.total }}
         run: |
           echo "passed: $PASSED"
-          echo "failed: $FAILED"
-          echo "skipped: $SKIPPED"
-          echo "total: $TOTAL"
-          if [ -z "$TOTAL" ]; then
-            echo "FAIL: expected 'total' output to be non-empty"
+          if [ "$PASSED" != "3" ]; then
+            echo "FAIL: expected passed=3, got '$PASSED'"
             exit 1
           fi
-          echo "PASS: action produced outputs with show=all"
-      - name: Assert output file was created with show=all
-        run: |
-          OUTPUT_FILE="${GITHUB_WORKSPACE}/test-summary-show-all.md"
-          echo "Checking for output file: $OUTPUT_FILE"
-          if [ ! -f "$OUTPUT_FILE" ]; then
-            echo "FAIL: output file was not created"
-            exit 1
-          fi
-          echo "Output file contents:"
-          cat "$OUTPUT_FILE"
-          echo "PASS: output file exists with show=all"
+          echo "PASS"

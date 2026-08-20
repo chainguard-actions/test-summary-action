@@ -1,4 +1,4 @@
-name: Test output file input
+name: Test output file generation
 on:
   workflow_dispatch:
 jobs:
@@ -9,24 +9,42 @@ jobs:
       - id: action
         uses: .
         with:
-          paths: "${{ github.workspace }}/actions/hardened/test-summary--action/v2.1/tests/fixtures/TEST-results.xml"
-          output: "${{ github.workspace }}/test-summary-output.md"
+          paths: tests/fixtures/junit-passing.xml
+          output: /tmp/test-summary.md
       - name: Assert output file was created
         run: |
-          OUTPUT_FILE="${GITHUB_WORKSPACE}/test-summary-output.md"
-          echo "Checking for output file: $OUTPUT_FILE"
-          if [ ! -f "$OUTPUT_FILE" ]; then
-            echo "FAIL: output file was not created at $OUTPUT_FILE"
+          echo "Checking output file exists..."
+          if [ ! -f /tmp/test-summary.md ]; then
+            echo "FAIL: output file /tmp/test-summary.md was not created"
             exit 1
           fi
-          echo "Output file contents:"
-          cat "$OUTPUT_FILE"
           echo "PASS: output file exists"
-      - name: Assert output file contains markdown content
+      - name: Assert output file is non-empty
         run: |
-          OUTPUT_FILE="${GITHUB_WORKSPACE}/test-summary-output.md"
-          if ! grep -q "." "$OUTPUT_FILE"; then
+          SIZE=$(wc -c < /tmp/test-summary.md)
+          echo "output file size: $SIZE bytes"
+          if [ "$SIZE" -eq 0 ]; then
             echo "FAIL: output file is empty"
             exit 1
           fi
           echo "PASS: output file has content"
+      - name: Assert output file contains markdown
+        run: |
+          echo "Output file contents:"
+          cat /tmp/test-summary.md
+          # Should contain some markdown content (numbers or test info)
+          if ! grep -qE '[0-9]' /tmp/test-summary.md; then
+            echo "FAIL: output file does not appear to contain test summary data"
+            exit 1
+          fi
+          echo "PASS: output file contains expected content"
+      - name: Assert passed output is still set
+        env:
+          PASSED: ${{ steps.action.outputs.passed }}
+        run: |
+          echo "passed: $PASSED"
+          if [ "$PASSED" != "3" ]; then
+            echo "FAIL: expected passed=3, got '$PASSED'"
+            exit 1
+          fi
+          echo "PASS"

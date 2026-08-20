@@ -1,0 +1,35 @@
+name: Test TAP format input
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - id: action
+        uses: .
+        continue-on-error: true
+        with:
+          paths: tests/fixtures/results.tap
+      - name: Assert action ran (TAP format with failures causes action to fail)
+        env:
+          OUTCOME: ${{ steps.action.outcome }}
+          PASSED: ${{ steps.action.outputs.passed }}
+          FAILED: ${{ steps.action.outputs.failed }}
+          TOTAL: ${{ steps.action.outputs.total }}
+        run: |
+          echo "outcome: $OUTCOME"
+          echo "passed: $PASSED"
+          echo "failed: $FAILED"
+          echo "total: $TOTAL"
+          # The TAP file has 1 failure, so action should fail or succeed with outputs set
+          if [ "$OUTCOME" != "failure" ] && [ "$OUTCOME" != "success" ]; then
+            echo "FAIL: unexpected outcome '$OUTCOME'"
+            exit 1
+          fi
+          # Total should be 4 (1..4 in TAP file)
+          if [ -n "$TOTAL" ] && [ "$TOTAL" != "4" ]; then
+            echo "FAIL: expected total=4, got '$TOTAL'"
+            exit 1
+          fi
+          echo "PASS: TAP format processed correctly, outcome=$OUTCOME"

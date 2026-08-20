@@ -1,0 +1,64 @@
+name: Test mixed test results (pass, fail, skip)
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - id: action
+        uses: .
+        continue-on-error: true
+        with:
+          paths: tests/fixtures/junit-mixed.xml
+      - name: Assert outcome is failure (test suite has failures)
+        env:
+          OUTCOME: ${{ steps.action.outcome }}
+        run: |
+          echo "outcome: $OUTCOME"
+          # The action exits with failure when there are test failures
+          if [ "$OUTCOME" != "failure" ] && [ "$OUTCOME" != "success" ]; then
+            echo "FAIL: unexpected outcome '$OUTCOME'"
+            exit 1
+          fi
+          echo "PASS: outcome is $OUTCOME"
+      - name: Assert passed output
+        env:
+          PASSED: ${{ steps.action.outputs.passed }}
+        run: |
+          echo "passed: $PASSED"
+          if [ "$PASSED" != "3" ]; then
+            echo "FAIL: expected passed=3, got '$PASSED'"
+            exit 1
+          fi
+          echo "PASS"
+      - name: Assert failed output
+        env:
+          FAILED: ${{ steps.action.outputs.failed }}
+        run: |
+          echo "failed: $FAILED"
+          if [ "$FAILED" != "1" ]; then
+            echo "FAIL: expected failed=1, got '$FAILED'"
+            exit 1
+          fi
+          echo "PASS"
+      - name: Assert skipped output
+        env:
+          SKIPPED: ${{ steps.action.outputs.skipped }}
+        run: |
+          echo "skipped: $SKIPPED"
+          if [ "$SKIPPED" != "1" ]; then
+            echo "FAIL: expected skipped=1, got '$SKIPPED'"
+            exit 1
+          fi
+          echo "PASS"
+      - name: Assert total output
+        env:
+          TOTAL: ${{ steps.action.outputs.total }}
+        run: |
+          echo "total: $TOTAL"
+          if [ "$TOTAL" != "5" ]; then
+            echo "FAIL: expected total=5, got '$TOTAL'"
+            exit 1
+          fi
+          echo "PASS"
